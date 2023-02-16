@@ -91,8 +91,41 @@ app.get("/api/orders", async (_req, res) => {
 });
 
 //Change Tags on Order
-app.post("/api/orders/cancel", async (_req, res) => {
-  console.log("cancel order", _req.body);
+app.put("/api/orders/", async (_req, res) => {
+  try {
+    const order = new shopify.api.rest.Order({
+      session: res.locals.shopify.session,
+    });
+    order.id = _req.body.id;
+    order.tags = "cancelled";
+    await order.save({
+      update: true,
+    });
+    console.log(order);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// Cancel First order
+
+app.post("/api/orders/", async (_req, res) => {
+  console.log("@@@@@@@@@@@@@@@@@@", _req.body.id);
+
+  try {
+    const order = new shopify.api.rest.Order({
+      session: res.locals.shopify.session,
+    });
+    order.id = _req.body.id;
+    await order.cancel({});
+    console.log(order);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+//Change Tags on Order
+app.post("/api/orders/", async (_req, res) => {
   try {
     const order = new shopify.api.rest.Order({
       session: res.locals.shopify.session,
@@ -108,44 +141,42 @@ app.post("/api/orders/cancel", async (_req, res) => {
   }
 });
 
-// Cancel First order
-
-app.put("/api/orders/", async (_req, res) => {
-  console.log("cancel order", _req.body);
-  try {
-    const order = new shopify.api.rest.Order({
-      session: res.locals.shopify.session,
-    });
-    order.id = 5268664942875;
-    await order.cancel({});
-    console.log(order);
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-//-----------------------------------------------------------
-
-app.get("/api/customers", async (_req, res) => {
-  try {
-    const response = await shopify.api.rest.Customer.all({
-      session: res.locals.shopify.session,
-      ids: "6534427803802",
-    });
-
-    res.status(200).send(response);
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
 //-------------------------------------------------------
-app.get("/api/products/create", async (_req, res) => {
+app.post("/api/orders/create", async (_req, res) => {
   let status = 200;
   let error = null;
 
   try {
-    await productCreator(res.locals.shopify.session);
+    const order = new shopify.api.rest.Order({
+      session: res.locals.shopify.session,
+    });
+    order.line_items = [
+      {
+        title: "Big Brown Bear Boots",
+        price: 74.99,
+        grams: "1300",
+        quantity: 3,
+        tax_lines: [
+          {
+            price: 13.5,
+            rate: 0.06,
+            title: "State tax",
+          },
+        ],
+      },
+    ];
+    order.transactions = [
+      {
+        kind: "sale",
+        status: "success",
+        amount: 238.47,
+      },
+    ];
+    order.total_tax = 13.5;
+    order.currency = "EUR";
+    await order.save({
+      update: true,
+    });
   } catch (e) {
     console.log(`Failed to process products/create: ${e.message}`);
     status = 500;
