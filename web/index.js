@@ -75,7 +75,7 @@ app.get("/api/collections/290987770010", async (_req, res) => {
 // });
 
 //-------------------------------------------------------
-
+// Get Order
 app.get("/api/orders", async (_req, res) => {
   try {
     const response = await shopify.api.rest.Order.all({
@@ -87,6 +87,40 @@ app.get("/api/orders", async (_req, res) => {
     res.status(200).send(response);
   } catch (err) {
     res.status(500).send(err);
+  }
+});
+
+//Change Tags on Order
+app.post("/api/orders/cancel", async (_req, res) => {
+  console.log("cancel order", _req.body);
+  try {
+    const order = new shopify.api.rest.Order({
+      session: res.locals.shopify.session,
+    });
+    order.id = 5268664942875;
+    order.tags = "cancelled";
+    await order.save({
+      update: true,
+    });
+    console.log(order);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// Cancel First order
+
+app.put("/api/orders/", async (_req, res) => {
+  console.log("cancel order", _req.body);
+  try {
+    const order = new shopify.api.rest.Order({
+      session: res.locals.shopify.session,
+    });
+    order.id = 5268664942875;
+    await order.cancel({});
+    console.log(order);
+  } catch (err) {
+    console.log(err);
   }
 });
 
