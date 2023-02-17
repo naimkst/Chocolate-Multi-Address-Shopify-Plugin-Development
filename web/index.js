@@ -66,7 +66,7 @@ app.get("/api/orders", async (_req, res) => {
     const response = await shopify.api.rest.Order.all({
       session: res.locals.shopify.session,
       status: "any",
-      limit: 5,
+      limit: 1,
     });
 
     res.status(200).send(response);
@@ -151,8 +151,8 @@ app.post("/api/orders/create", async (_req, res) => {
       company: _req?.body?.company,
       country_code: _req?.body?.country_code,
       province_code: _req?.body?.province_code,
-      first_name: _req?.body?.first_name,
-      last_name: _req?.body?.last_name,
+      first_name: " ",
+      last_name: " ",
       address1: _req?.body?.address1,
       address2: _req?.body?.address2,
       city: _req?.body?.city,
@@ -185,15 +185,7 @@ app.put("/api/orders/update", async (_req, res) => {
     });
     order.id = 5246072979748;
     order.shipping_address = {
-      address1: "123 Ship Street",
-      city: "Shipsville",
-      province: "Bangladesh",
-      country: "Bangladesh",
-      zip: "9100",
-      phone: "123-456-7890",
-      country_code: "BD",
-      first_name: "Bob",
-      last_name: "Bobberson",
+      address1: _req.body.address1,
     };
     await order.save({
       update: true,

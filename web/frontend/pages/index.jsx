@@ -61,6 +61,7 @@ export default function HomePage() {
       variant_id: orderData[0]?.line_items[id]?.variant_id,
       customer_id: orderData[0]?.customer?.default_address?.customer_id,
       quantity: orderData[0]?.line_items[id]?.quantity,
+      address1: orderData[0]?.line_items[id]?.properties[0]?.value,
       company: orderData[0]?.shipping_address?.company,
       country: orderData[0]?.shipping_address?.country,
       country_code: orderData[0]?.shipping_address?.country_code,
@@ -69,7 +70,6 @@ export default function HomePage() {
       currency: orderData[0]?.currency,
       first_name: orderData[0]?.shipping_address?.first_name,
       last_name: orderData[0]?.shipping_address?.last_name,
-      address1: orderData[0]?.shipping_address?.address1,
       address2: orderData[0]?.shipping_address?.address2,
       city: orderData[0]?.shipping_address?.city,
       zip: orderData[0]?.shipping_address?.zip,
@@ -128,22 +128,28 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchOrder();
-    if (orderData[0]?.line_items?.length > 1) {
+    if (
+      orderData[0]?.line_items?.length > 1 &&
+      orderData[0]?.line_items[0]?.properties[0]?.value !== "Empty"
+    ) {
       cancelOrder();
       addOrderTag();
     }
-    if (orderData[0]?.tags === "cancelled") {
-      orderCreate();
-    }
+    // if (orderData[0]?.tags === "cancelled") {
+    //   orderCreate();
+    // }
 
-    orderData[0]?.line_items?.map((item, index) => {
-      if (orderData[0]?.tags === "cancelled") {
-        orderCreate(index);
-      }
-    });
+    if (orderData[0]?.tags === "cancelled") {
+      orderData[0]?.line_items?.map((item, index) => {
+        if (orderData[0]?.line_items[index]?.properties[0]?.value !== "Empty") {
+          orderCreate(index);
+        }
+      });
+    }
   }, [orderData]);
 
   console.log("order data", orderData);
+  console.log("adress", orderData[0]?.line_items[0]?.properties[0]?.value);
 
   return <Home />;
 }
