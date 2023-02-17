@@ -15,8 +15,10 @@ export default function HomePage() {
       const response = await fetch("/api/orders");
       const getOrderId = await response.json();
       setOrderId(getOrderId[0].id);
-      console.log(getOrderId);
-      setOrderData(getOrderId);
+      console.log("Get Data", getOrderId);
+      if (getOrderId[0]?.line_items?.length > 1) {
+        setOrderData(getOrderId);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -54,10 +56,68 @@ export default function HomePage() {
       console.log(err);
     }
   };
-  const orderCreate = async () => {
+  const orderCreate = async (id) => {
+    const data = {
+      variant_id: orderData[0]?.line_items[id]?.variant_id,
+      customer_id: orderData[0]?.customer?.default_address?.customer_id,
+      quantity: orderData[0]?.line_items[id]?.quantity,
+      company: orderData[0]?.shipping_address?.company,
+      country: orderData[0]?.shipping_address?.country,
+      country_code: orderData[0]?.shipping_address?.country_code,
+      province: orderData[0]?.shipping_address?.province,
+      province_code: orderData[0]?.shipping_address?.province_code,
+      currency: orderData[0]?.currency,
+      first_name: orderData[0]?.shipping_address?.first_name,
+      last_name: orderData[0]?.shipping_address?.last_name,
+      address1: orderData[0]?.shipping_address?.address1,
+      address2: orderData[0]?.shipping_address?.address2,
+      city: orderData[0]?.shipping_address?.city,
+      zip: orderData[0]?.shipping_address?.zip,
+      phone: orderData[0]?.shipping_address?.phone,
+    };
     try {
       const response = await fetch("/api/orders/create", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      const res = await response.json();
+      console.log(res);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  //update order
+
+  const orderUpdate = async (id) => {
+    const data = {
+      variant_id: orderData[0]?.line_items[id]?.variant_id,
+      customer_id: orderData[0]?.customer?.default_address?.customer_id,
+      quantity: orderData[0]?.line_items[id]?.quantity,
+      company: orderData[0]?.shipping_address?.company,
+      country: orderData[0]?.shipping_address?.country,
+      country_code: orderData[0]?.shipping_address?.country_code,
+      province: orderData[0]?.shipping_address?.province,
+      province_code: orderData[0]?.shipping_address?.province_code,
+      currency: orderData[0]?.currency,
+      first_name: orderData[0]?.shipping_address?.first_name,
+      last_name: orderData[0]?.shipping_address?.last_name,
+      address1: orderData[0]?.shipping_address?.address1,
+      address2: orderData[0]?.shipping_address?.address2,
+      city: orderData[0]?.shipping_address?.city,
+      zip: orderData[0]?.shipping_address?.zip,
+      phone: orderData[0]?.shipping_address?.phone,
+    };
+    try {
+      const response = await fetch("/api/orders/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
       const res = await response.json();
       console.log(res);
@@ -75,7 +135,13 @@ export default function HomePage() {
     if (orderData[0]?.tags === "cancelled") {
       orderCreate();
     }
-  }, []);
+
+    orderData[0]?.line_items?.map((item, index) => {
+      if (orderData[0]?.tags === "cancelled") {
+        orderCreate(index);
+      }
+    });
+  }, [orderData]);
 
   console.log("order data", orderData);
 

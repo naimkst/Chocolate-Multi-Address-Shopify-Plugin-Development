@@ -59,21 +59,6 @@ app.get("/api/collections/290987770010", async (_req, res) => {
 
 //------------------------------------------------------------
 
-// app.get("/api/collections/290987770010", async (_req, res) => {
-//   try {
-//     const response = await shopify.api.rest.Collection.find({
-//       session: res.locals.shopify.session,
-//       id: 290987770010,
-//     });
-
-//     res.status(200).send(response);
-
-//   } catch(err){
-
-//     res.status(500).send(err);
-//   }
-// });
-
 //-------------------------------------------------------
 // Get Order
 app.get("/api/orders", async (_req, res) => {
@@ -81,7 +66,7 @@ app.get("/api/orders", async (_req, res) => {
     const response = await shopify.api.rest.Order.all({
       session: res.locals.shopify.session,
       status: "any",
-      limit: 1,
+      limit: 5,
     });
 
     res.status(200).send(response);
@@ -143,6 +128,7 @@ app.post("/api/orders/", async (_req, res) => {
 
 //-------------------------------------------------------
 app.post("/api/orders/create", async (_req, res) => {
+  console.log("@@@@@@@@@@@@@@@@@@", _req.body);
   let status = 200;
   let error = null;
 
@@ -152,27 +138,27 @@ app.post("/api/orders/create", async (_req, res) => {
     });
     order.line_items = [
       {
-        title: "Big Brown Bear Boots",
-        price: 74.99,
-        grams: "1300",
-        quantity: 3,
-        tax_lines: [
-          {
-            price: 13.5,
-            rate: 0.06,
-            title: "State tax",
-          },
-        ],
+        variant_id: _req?.body?.variant_id,
+        quantity: _req?.body?.quantity,
       },
     ];
-    order.transactions = [
-      {
-        kind: "sale",
-        status: "success",
-        amount: 238.47,
-      },
-    ];
-    order.total_tax = 13.5;
+    order.customer = {
+      id: _req?.body?.customer_id,
+    };
+    order.shipping_address = {
+      province: _req?.body?.province,
+      country: _req?.body?.country,
+      company: _req?.body?.company,
+      country_code: _req?.body?.country_code,
+      province_code: _req?.body?.province_code,
+      first_name: _req?.body?.first_name,
+      last_name: _req?.body?.last_name,
+      address1: _req?.body?.address1,
+      address2: _req?.body?.address2,
+      city: _req?.body?.city,
+      zip: _req?.body?.zip,
+      phone: _req?.body?.phone,
+    };
     order.currency = "EUR";
     await order.save({
       update: true,
@@ -185,6 +171,40 @@ app.post("/api/orders/create", async (_req, res) => {
   res.status(status).send({ success: status === 200, error });
 });
 
+//-------------------------------------------------------------
+
+// Update Order
+app.put("/api/orders/update", async (_req, res) => {
+  console.log("@@@@@@@@@@@@@@@@@@", _req.body);
+  let status = 200;
+  let error = null;
+
+  try {
+    const order = new shopify.api.rest.Order({
+      session: res.locals.shopify.session,
+    });
+    order.id = 5246072979748;
+    order.shipping_address = {
+      address1: "123 Ship Street",
+      city: "Shipsville",
+      province: "Bangladesh",
+      country: "Bangladesh",
+      zip: "9100",
+      phone: "123-456-7890",
+      country_code: "BD",
+      first_name: "Bob",
+      last_name: "Bobberson",
+    };
+    await order.save({
+      update: true,
+    });
+  } catch (e) {
+    console.log(`Failed to process products/create: ${e.message}`);
+    status = 500;
+    error = e.message;
+  }
+  res.status(status).send({ success: status === 200, error });
+});
 //-------------------------------------------------------------
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
