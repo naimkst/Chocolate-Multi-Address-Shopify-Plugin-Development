@@ -7,7 +7,8 @@ import serveStatic from "serve-static";
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import GDPRWebhookHandlers from "./gdpr.js";
-import fetchCollection from "./helpers/index.js";
+import fetchCollection, { fetchHooks } from "./helpers/index.js";
+import { DeliveryMethod } from "@shopify/shopify-api";
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
 
@@ -41,23 +42,6 @@ app.get("/api/products/count", async (_req, res) => {
   });
   res.status(200).send(countData);
 });
-//--------------------------------------------------------
-
-app.get("/api/collections/290987770010", async (_req, res) => {
-  let status = 200;
-  let error = null;
-
-  try {
-    await fetchCollection(res.locals.shopify.session);
-  } catch (e) {
-    console.log(`Failed to process products/create: ${e.message}`);
-    status = 500;
-    error = e.message;
-  }
-  res.status(status).send({ success: status === 200, error });
-});
-
-//------------------------------------------------------------
 
 //-------------------------------------------------------
 // Get Order
@@ -95,8 +79,6 @@ app.put("/api/orders/", async (_req, res) => {
 // Cancel First order
 
 app.post("/api/orders/", async (_req, res) => {
-  console.log("@@@@@@@@@@@@@@@@@@", _req.body.id);
-
   try {
     const order = new shopify.api.rest.Order({
       session: res.locals.shopify.session,
@@ -128,10 +110,9 @@ app.post("/api/orders/", async (_req, res) => {
 
 //-------------------------------------------------------
 app.post("/api/orders/create", async (_req, res) => {
-  console.log("@@@@@@@@@@@@@@@@@@", _req.body);
+  console.log("@@@@@@@@@@@@@@@@@@", _req?.body?.address1);
   let status = 200;
   let error = null;
-
   try {
     const order = new shopify.api.rest.Order({
       session: res.locals.shopify.session,
@@ -146,19 +127,29 @@ app.post("/api/orders/create", async (_req, res) => {
       id: _req?.body?.customer_id,
     };
     order.shipping_address = {
+      first_name: _req?.body?.first_name,
+      last_name: _req?.body?.last_name,
+      address1: _req?.body?.address1,
+      phone: _req?.body?.phone,
+      city: _req?.body?.city,
       province: _req?.body?.province,
       country: _req?.body?.country,
-      company: _req?.body?.company,
-      country_code: _req?.body?.country_code,
-      province_code: _req?.body?.province_code,
-      first_name: " ",
-      last_name: " ",
-      address1: _req?.body?.address1,
-      address2: _req?.body?.address2,
-      city: _req?.body?.city,
       zip: _req?.body?.zip,
-      phone: _req?.body?.phone,
     };
+    // order.shipping_address = {
+    //   address1: _req?.body?.address1,
+    //   city: " ",
+    //   province: _req?.body?.province ? _req?.body?.province : " ",
+    //   country: _req?.body?.country ? _req?.body?.country : " ",
+    //   zip: " ",
+    //   phone: _req?.body?.phone,
+    //   first_name: " ",
+    //   last_name: " ",
+    //   country_code: _req?.body?.country_code ? _req?.body?.country_code : " ",
+    //   province_code: _req?.body?.province_code
+    //     ? _req?.body?.province_code
+    //     : " ",
+    // };
     order.currency = "EUR";
     await order.save({
       update: true,
@@ -183,9 +174,16 @@ app.put("/api/orders/update", async (_req, res) => {
     const order = new shopify.api.rest.Order({
       session: res.locals.shopify.session,
     });
-    order.id = 5246072979748;
+    order.id = 5273656754459;
     order.shipping_address = {
-      address1: _req.body.address1,
+      address1: "Road No 1, House 1, Khulna, Bangladesh",
+      city: "Khulna",
+      province: "Khulna",
+      country: "Bangladesh",
+      zip: "9000",
+      phone: "01700000000",
+      first_name: "Naim",
+      last_name: "Hossain",
     };
     await order.save({
       update: true,
